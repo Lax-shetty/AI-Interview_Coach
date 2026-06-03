@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Interview Coach</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #12121a;
+      --surface2: #1a1a26;
+      --border: #2a2a3a;
+      --accent: #7c6af7;
+      --accent2: #4ecdc4;
+      --text: #e8e8f0;
+      --text-muted: #7a7a9a;
+      --success: #4ecdc4;
+      --radius: 16px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* background blobs */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px; left: -200px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,106,247,0.15) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -200px; right: -200px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(78,205,196,0.1) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* HEADER */
+    header {
+      text-align: center;
+      padding: 3rem 0 2.5rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(124,106,247,0.15);
+      border: 1px solid rgba(124,106,247,0.3);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.5px;
+    }
+
+    .badge::before { content: '✦'; font-size: 10px; }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 0%, var(--accent) 50%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      font-weight: 300;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* CARD */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      transition: border-color 0.2s;
+    }
+
+    .card:focus-within { border-color: var(--accent); }
+
+    .card-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-label span {
+      background: rgba(124,106,247,0.15);
+      width: 24px; height: 24px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 1rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea::placeholder { color: var(--text-muted); }
+    textarea:focus { border-color: var(--accent); }
+
+    /* ROLE TYPE SELECTOR */
+    .role-selector {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .role-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--text-muted);
+      font-size: 13px;
+      padding: 8px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .role-chip:hover { border-color: var(--accent); color: var(--text); }
+    .role-chip.active {
+      background: rgba(124,106,247,0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* GENERATE BUTTON */
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), #9b8cf9);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 1rem 2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 0.5rem;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(124,106,247,0.4);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* LOADING */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* RESULTS */
+    .results {
+      display: none;
+      animation: fadeUp 0.4s ease;
+    }
+
+    .results.visible { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .results-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .results-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: var(--surface2);
+      padding: 6px 12px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+    }
+
+    .question-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .question-card:hover { border-color: var(--accent); transform: translateX(4px); }
+    .question-card.expanded { border-color: var(--accent2); }
+
+    .q-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .q-number {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .q-content { flex: 1; }
+
+    .q-category {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 4px;
+    }
+
+    .q-text {
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    .q-toggle {
+      color: var(--text-muted);
+      font-size: 18px;
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+
+    .question-card.expanded .q-toggle { transform: rotate(180deg); color: var(--accent2); }
+
+    .q-answer {
+      display: none;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .question-card.expanded .q-answer { display: block; }
+
+    .q-answer-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .q-answer-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    /* ERROR */
+    .error-box {
+      background: rgba(255,80,80,0.1);
+      border: 1px solid rgba(255,80,80,0.3);
+      border-radius: 10px;
+      color: #ff8080;
+      font-size: 14px;
+      padding: 1rem;
+      display: none;
+      margin-top: 1rem;
+    }
+
+    .error-box.visible { display: block; }
+
+    /* API KEY section */
+    .api-section {
+      background: rgba(124,106,247,0.08);
+      border: 1px dashed rgba(124,106,247,0.3);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .api-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .api-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 0.75rem 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="password"]:focus { border-color: var(--accent); }
+    input[type="password"]::placeholder { color: var(--text-muted); }
+
+    /* UPLOAD AREA */
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 0.75rem;
+      background: var(--surface2);
+    }
+
+    .upload-area:hover { border-color: var(--accent); background: rgba(124,106,247,0.05); }
+    .upload-area.active { border-color: var(--accent2); background: rgba(78,205,196,0.05); }
+
+    .upload-icon { font-size: 28px; margin-bottom: 6px; }
+    .upload-text { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+    .upload-sub { font-size: 12px; color: var(--text-muted); }
+    .upload-filename { font-size: 13px; color: var(--accent2); margin-top: 6px; font-weight: 500; }
+
+    .upload-divider {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin: 0.75rem 0;
+      position: relative;
+    }
+
+    .upload-divider::before, .upload-divider::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 42%;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .upload-divider::before { left: 0; }
+    .upload-divider::after { right: 0; }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 2rem 0 0;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Powered by Claude AI</div>
+      <h1>AI Interview Coach</h1>
+      <p class="subtitle">Paste a job description and your resume. Get 10 tailored interview questions with ideal answer frameworks — in seconds.</p>
+    </header>
+
+    <!-- JOB DESCRIPTION -->
+    <div class="card">
+      <div class="card-label"><span>📋</span> Job Description</div>
+      <textarea id="jobDesc" rows="6" placeholder="Paste the full job description here — role, responsibilities, requirements..."></textarea>
+    </div>
+
+    <!-- RESUME -->
+    <div class="card">
+      <div class="card-label"><span>👤</span> Your Resume / Background</div>
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('resumeFile').click()">
+        <div class="upload-icon">📄</div>
+        <div class="upload-text">Click to upload your resume</div>
+        <div class="upload-sub">Supports PDF, DOC, DOCX, or TXT</div>
+        <input type="file" id="resumeFile" accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="handleFileUpload(event)"/>
+      </div>
+      <div class="upload-divider">or paste below</div>
+      <textarea id="resume" rows="4" placeholder="Paste your resume text or briefly describe your background..."></textarea>
+    </div>
+
+    <!-- ROLE TYPE -->
+    <div class="card">
+      <div class="card-label"><span>🎯</span> Interview Focus</div>
+      <div class="role-selector">
+        <button class="role-chip active" onclick="selectChip(this, 'balanced')">Balanced Mix</button>
+        <button class="role-chip" onclick="selectChip(this, 'behavioral')">Behavioral</button>
+        <button class="role-chip" onclick="selectChip(this, 'technical')">Technical</button>
+        <button class="role-chip" onclick="selectChip(this, 'product')">Product Thinking</button>
+        <button class="role-chip" onclick="selectChip(this, 'leadership')">Leadership</button>
+      </div>
+    </div>
+
+    <button class="btn" id="generateBtn" onclick="generateQuestions()">
+      <span id="btnText">Generate Interview Questions</span>
+      <span id="btnIcon">✦</span>
+    </button>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <!-- RESULTS -->
+    <div class="results" id="results">
+      <div class="results-header">
+        <div class="results-title">Your Interview Questions</div>
+        <div class="results-meta" id="resultsMeta">10 questions generated</div>
+      </div>
+      <div id="questionsContainer"></div>
+    </div>
+
+    <footer>
+      Built by Laxmi Shetty &nbsp;·&nbsp; <a href="https://github.com" target="_blank">GitHub</a>
+    </footer>
+  </div>
+
+  <script>
+    let selectedFocus = 'balanced';
+
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const uploadArea = document.getElementById('uploadArea');
+      uploadArea.classList.add('active');
+
+      const reader = new FileReader();
+
+      if (file.name.endsWith('.pdf')) {
+        reader.readAsArrayBuffer(file);
+        reader.onload = async (e) => {
+          try {
+            // Extract text from PDF using basic approach
+            const bytes = new Uint8Array(e.target.result);
+            let text = '';
+            for (let i = 0; i < bytes.length; i++) {
+              const char = String.fromCharCode(bytes[i]);
+              if (char >= ' ' && char <= '~') text += char;
+              else if (char === '\n') text += '\n';
+            }
+            // Clean up extracted text
+            text = text.replace(/[^\x20-\x7E\n]/g, ' ').replace(/\s{3,}/g, '\n').trim();
+            document.getElementById('resume').value = text;
+            uploadArea.querySelector('.upload-text').textContent = '✅ ' + file.name;
+            uploadArea.querySelector('.upload-sub').textContent = 'Resume loaded successfully';
+          } catch (err) {
+            uploadArea.querySelector('.upload-sub').textContent = 'Could not read PDF — please paste your resume below';
+          }
+        };
+      } else {
+        reader.readAsText(file);
+        reader.onload = (e) => {
+          document.getElementById('resume').value = e.target.result;
+          uploadArea.querySelector('.upload-text').textContent = '✅ ' + file.name;
+          uploadArea.querySelector('.upload-sub').textContent = 'Resume loaded successfully';
+        };
+      }
+    }
+
+    function selectChip(el, value) {
+      document.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      selectedFocus = value;
+    }
+
+    function showError(msg) {
+      const box = document.getElementById('errorBox');
+      box.textContent = msg;
+      box.classList.add('visible');
+    }
+
+    function hideError() {
+      document.getElementById('errorBox').classList.remove('visible');
+    }
+
+    function setLoading(loading) {
+      const btn = document.getElementById('generateBtn');
+      const btnText = document.getElementById('btnText');
+      const btnIcon = document.getElementById('btnIcon');
+      btn.disabled = loading;
+      if (loading) {
+        btnText.textContent = 'Generating your questions...';
+        btnIcon.innerHTML = '<div class="spinner"></div>';
+      } else {
+        btnText.textContent = 'Generate Interview Questions';
+        btnIcon.textContent = '✦';
+      }
+    }
+
+    function toggleQuestion(card) {
+      card.classList.toggle('expanded');
+    }
+
+    async function generateQuestions() {
+      hideError();
+    const apiKey = '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';
+    const jobDesc = document.getElementById('jobDesc').value.trim();
+      const resume = document.getElementById('resume').value.trim();
+
+      if (!jobDesc) { showError('Please paste the job description.'); return; }
+      if (!resume) { showError('Please paste your resume or background.'); return; }
+
+      setLoading(true);
+      document.getElementById('results').classList.remove('visible');
+
+      const focusMap = {
+        balanced: 'a balanced mix of behavioral, technical, and product thinking questions',
+        behavioral: 'behavioral and situational questions (STAR format)',
+        technical: 'technical and domain-specific questions',
+        product: 'product thinking, strategy, and decision-making questions',
+        leadership: 'leadership, ownership, and cross-functional collaboration questions'
+      };
+
+      const prompt = `You are an expert interview coach. Based on the job description and candidate background below, generate exactly 10 highly tailored interview questions with ideal answer frameworks.
+
+Focus on: ${focusMap[selectedFocus]}
+
+JOB DESCRIPTION:
+${jobDesc}
+
+CANDIDATE BACKGROUND:
+${resume}
+
+Return ONLY a valid JSON array with exactly 10 objects. Each object must have:
+- "category": short category label (e.g. "Behavioral", "Technical", "Product Thinking", "Leadership", "Situational")
+- "question": the interview question
+- "framework": a 3-4 sentence ideal answer framework specific to this candidate and role
+
+Example format:
+[{"category":"Behavioral","question":"...","framework":"..."}]
+
+Return only the JSON array, no other text.`;
+
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'HTTP-Referer': 'https://lax-shetty.github.io',
+            'X-Title': 'AI Interview Coach'
+          },
+          body: JSON.stringify({
+            model: 'meta-llama/llama-3.3-70b:free',
+            max_tokens: 3000,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.error?.message || 'API error');
+        }
+
+        const data = await response.json();
+        const text = data.choices[0].message.content;
+        const clean = text.replace(/```json|```/g, '').trim();
+        const questions = JSON.parse(clean);
+
+        renderQuestions(questions);
+      } catch (err) {
+        showError('Error: ' + err.message + '. Please check your API key and try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function renderQuestions(questions) {
+      const container = document.getElementById('questionsContainer');
+      const meta = document.getElementById('resultsMeta');
+      container.innerHTML = '';
+      meta.textContent = `${questions.length} questions generated`;
+
+      questions.forEach((q, i) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.onclick = () => toggleQuestion(card);
+        card.innerHTML = `
+          <div class="q-header">
+            <div class="q-number">${i + 1}</div>
+            <div class="q-content">
+              <div class="q-category">${q.category}</div>
+              <div class="q-text">${q.question}</div>
+            </div>
+            <div class="q-toggle">⌄</div>
+          </div>
+          <div class="q-answer">
+            <div class="q-answer-label">💡 How to Answer</div>
+            <div class="q-answer-text">${q.framework}</div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      document.getElementById('results').classList.add('visible');
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  </script>
+</body>
+</html>
