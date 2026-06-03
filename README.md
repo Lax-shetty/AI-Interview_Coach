@@ -12,19 +12,18 @@ An AI-powered interview preparation tool that generates tailored interview quest
 ## Built with
 
 - Vanilla HTML, CSS, JavaScript
-- Claude API (claude-sonnet-4) by Anthropic
+- OpenRouter API (meta-llama/llama-3.3-70b)
 
 ## How to run
 
-1. Clone the repo
-2. Open `index.html` in your browser
-3. Enter your [Anthropic API key](https://console.anthropic.com)
-4. Paste a job description and your background
-5. Hit Generate
+1.Clone the repo
+2.Open index.html in your browser — or visit the live demo
+3.Paste a job description and your resume
+4.Hit Generate
 
 ## Live Demo
 
-[View live →](https://yourusername.github.io/interview-coach)
+[View live →][View live →](https://lax-shetty.github.io/ai-interview-coach)
 
 ## About
 
